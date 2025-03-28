@@ -1,0 +1,12 @@
+pytesseract
+pdf2image
+PyMuPDF
+Pillow
+requests
+tabulate
+pdfplumber
+camelot-py
+ghostscript
+ipywidgets
+whoosh
+pytest
