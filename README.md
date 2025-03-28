@@ -21,6 +21,19 @@ formularios y se indexa el contenido para búsquedas posteriores.
     1. Descarga la versión precompilada de [Poppler para Windows](http://blog.alivate.com.au/poppler-windows/).
     2. Descomprime el contenido en una carpeta (por ejemplo, `C:\poppler\`).
     3. Agrega la ruta `C:\poppler\bin` a la variable de entorno `PATH`.
+- **Tesseract OCR** instalado en el sistema:
+  - **macOS**:
+    ```bash
+    brew install tesseract
+    ```
+  - **Ubuntu/Debian**:
+    ```bash
+    sudo apt-get update
+    sudo apt-get install tesseract-ocr
+    ```
+  - **Windows**:
+    1. Descarga el instalador de Tesseract desde [la página de Tesseract](https://github.com/UB-Mannheim/tesseract/wiki).
+    2. Instálalo y asegúrate de que la ruta del ejecutable esté en la variable de entorno `PATH`.
 
 ## Instalación
 
