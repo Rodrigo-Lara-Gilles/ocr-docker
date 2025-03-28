@@ -1,12 +1,16 @@
+# OCR y PDF
 pytesseract
 pdf2image
 PyMuPDF
+pdfplumber
 Pillow
+camelot-py[cv]
+ghostscript
+
+# Utilidades
 requests
 tabulate
-pdfplumber
-camelot-py
-ghostscript
-ipywidgets
 whoosh
 pytest
+
+#python3 -m pip install -r requirements.txt

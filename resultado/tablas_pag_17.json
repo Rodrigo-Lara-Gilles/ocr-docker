@@ -1,0 +1,38 @@
+[
+  {
+    "tabla_num": 1,
+    "contenido": [
+      "+-----------------------------------------------+-----------------------------------------------------------+",
+      "| Actividad                                     | Plazo                                                     |",
+      "+-----------------------------------------------+-----------------------------------------------------------+",
+      "| Informe final Auditoría de Pre-Certificación  | A más tardar el día XX de YY de AAAA                      |",
+      "| año AAAA Sistemas PMG 1 y 2                   |                                                           |",
+      "+-----------------------------------------------+-----------------------------------------------------------+",
+      "| Informe final Auditoría de Certificación año  | A más tardar el día ZZ de WW de AAAA                      |",
+      "| AAAA Sistemas PMG 1 y 2                       |                                                           |",
+      "+-----------------------------------------------+-----------------------------------------------------------+",
+      "| Informe final Auditoría de Mantención año     | Entre 6 meses y un año después de la certificación        |",
+      "| AAAA+1. Sistemas PMG 1 y 2                    | Sistemas PMG 1 y 2 o en la fecha que acuerden las partes. |",
+      "+-----------------------------------------------+-----------------------------------------------------------+",
+      "| Informe final Auditoría de Mantención año     | Entre 6 meses y un año después de la entrega del Informe  |",
+      "| AAAA+2. Sistemas PMG 1 y 2                    | final Auditoría de Mantención año AAAA+1 Sistemas PMG     |",
+      "|                                               | 1 y 2 o en la fecha que acuerden las partes               |",
+      "+-----------------------------------------------+-----------------------------------------------------------+",
+      "| Informe final Auditoría de Pre-Certificación  | A más tardar el día XX de YY de AAAA+1                    |",
+      "| año AAAA+1 Sistemas PMG 3 y 4                 |                                                           |",
+      "+-----------------------------------------------+-----------------------------------------------------------+",
+      "| Informe final Auditoría de Certificación año  | A más tardar el día ZZ de WW de AAAA+1                    |",
+      "| AAAA+1 Sistemas PMG 3 y 4                     |                                                           |",
+      "+-----------------------------------------------+-----------------------------------------------------------+",
+      "| Informe final Auditoría de Mantención año     | Entre 6 meses y un año después de la certificación        |",
+      "| AAAA+2 Sistemas PMG 3 y 4                     | Sistemas PMG 3 y 4 o en la fecha que acuerden las partes. |",
+      "+-----------------------------------------------+-----------------------------------------------------------+",
+      "| Informe final Auditoría de Pre-Certificación  | A más tardar el día XX de YY de AAAA+2                    |",
+      "| año AAAA+2 Sistemas PMG 5 y 6                 |                                                           |",
+      "+-----------------------------------------------+-----------------------------------------------------------+",
+      "| Informe final Auditoría de Certificación año  | A más tardar el día ZZ de WW de AAAA+2                    |",
+      "| AAAA+2 Sistemas PMG 5 y 6                     |                                                           |",
+      "+-----------------------------------------------+-----------------------------------------------------------+"
+    ]
+  }
+]

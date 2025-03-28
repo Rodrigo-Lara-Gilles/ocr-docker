@@ -1,0 +1,42 @@
+[
+  {
+    "tabla_num": 1,
+    "contenido": [
+      "+--+--------------------------------------------------------------------------------------------+--+",
+      "+--+--------------------------------------------------------------------------------------------+--+",
+      "|  | [Proporcione  aquí,  en  un  máximo  de  una  página,  una  breve  descripción  de  la     |  |",
+      "|  | empresa que incluya su trayectoria, antecedentes relevantes, organización y que            |  |",
+      "|  | resalte  los  servicios  que  proporciona  y  sus  beneficios  para  la  Institución  que  |  |",
+      "|  | contrata sus servicios de certificación]                                                   |  |",
+      "+--+--------------------------------------------------------------------------------------------+--+",
+      "+--+--------------------------------------------------------------------------------------------+--+"
+    ]
+  },
+  {
+    "tabla_num": 2,
+    "contenido": [
+      "+--+----------------------------------------------------------------------------------------------+-----+",
+      "|  |                                                                                              | la  |",
+      "|  |                                                                                              | y   |",
+      "+--+----------------------------------------------------------------------------------------------+-----+",
+      "|  | [Proporcione  aquí,  en  un  máximo  de                                                      |     |",
+      "|  | tres  páginas,  una  explicación  de                                                         |     |",
+      "|  | metodología que propone adoptar para llevar a cabo las actividades y obtener los             |     |",
+      "|  | productos esperados en las Bases Técnicas.                                                   |     |",
+      "|  | Detallar  las  fuentes  de  información  que  se  van  a  utilizar  y  los  procedimientos,  |     |",
+      "|  | técnicas e instrumentos pertinentes                                                          |     |",
+      "|  | Detallar  cómo  se  realizará  la  organización  del  equipo  auditor  para  enfrentar  las  |     |",
+      "|  | auditorías                                                                                   |     |",
+      "|  | a                                                                                            |     |",
+      "|  | los                                                                                          |     |",
+      "|  | diferentes                                                                                   |     |",
+      "|  | procesos,                                                                                    |     |",
+      "|  | áreas,                                                                                       |     |",
+      "|  | unidades,                                                                                    |     |",
+      "|  | departamentos                                                                                |     |",
+      "|  | ubicaciones físicas si corresponde.]                                                         |     |",
+      "+--+----------------------------------------------------------------------------------------------+-----+",
+      "+--+----------------------------------------------------------------------------------------------+-----+"
+    ]
+  }
+]

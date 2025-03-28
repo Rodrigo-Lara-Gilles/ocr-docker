@@ -1,8 +1,26 @@
 # Proyecto OCR para Documentos del MOP
 
-Este proyecto implementa un prototipo de OCR que extrae texto de PDFs oficiales combinando
-la extracción de texto digital y OCR para páginas escaneadas. Además, se extraen tablas, se detectan
+Este proyecto implementa un prototipo de OCR que extrae texto de PDFs oficiales combinando  
+la extracción de texto digital y OCR para páginas escaneadas. Además, se extraen tablas, se detectan  
 formularios y se indexa el contenido para búsquedas posteriores.
+
+## Requisitos del sistema
+
+- **Python 3.7+** (se recomienda usar Python 3.12.9 o superior)
+- **Poppler** instalado en el sistema:
+  - **macOS**:
+    ```bash
+    brew install poppler
+    ```
+  - **Ubuntu/Debian**:
+    ```bash
+    sudo apt-get update
+    sudo apt-get install poppler-utils
+    ```
+  - **Windows**:
+    1. Descarga la versión precompilada de [Poppler para Windows](http://blog.alivate.com.au/poppler-windows/).
+    2. Descomprime el contenido en una carpeta (por ejemplo, `C:\poppler\`).
+    3. Agrega la ruta `C:\poppler\bin` a la variable de entorno `PATH`.
 
 ## Instalación
 
@@ -18,7 +36,7 @@ formularios y se indexa el contenido para búsquedas posteriores.
    ```
 3. Instala las dependencias:
    ```
-   pip install -r requirements.txt
+   python3 -m pip install -r requirements.txt
    ```
 
 ## Uso

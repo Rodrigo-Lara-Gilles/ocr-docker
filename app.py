@@ -1,27 +1,7 @@
-#!/usr/bin/env python3
-"""
-app.py - Prototipo OCR para Documentos Oficiales del MOP
-
-Este script implementa la lógica para:
-  - Descargar un PDF desde una URL.
-  - Procesar el PDF extrayendo texto digital y aplicando OCR a páginas escaneadas.
-  - Extraer tablas mediante Camelot y pdfplumber, y guardar cada conjunto en JSON.
-  - Extraer formularios (campos de formulario) de las páginas.
-  - Indexar el contenido global usando Whoosh.
-  - Generar archivos de salida (resultado.json, resultado.txt).
-  - Presentar una interfaz interactiva (con ipywidgets) para elegir método de ingreso.
-
-Uso:
-  - Desde consola:
-      python app.py --pdf ruta_al_pdf.pdf --output salida
-      python app.py --url https://ejemplo.com/archivo.pdf --output salida
-  - En entornos interactivos (Google Colab, Jupyter Notebook) se mostrará una UI.
-"""
-
 import os
 import json
 import logging
-import fitz                   # PyMuPDF
+import fitz
 import requests
 import pdfplumber
 import camelot
@@ -33,13 +13,16 @@ from tabulate import tabulate
 import shutil
 from whoosh import index
 from whoosh.fields import Schema, TEXT, ID
+from pathlib import Path
 
 # Configuración de logging para registrar eventos y errores
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
+logging.basicConfig(level=logging.INFO,
+                    format="%(asctime)s [%(levelname)s] %(message)s")
 
 ###################################
 # FUNCIONES AUXILIARES
 ###################################
+
 
 def descargar_pdf(url, output_file="temp.pdf"):
     """
@@ -53,7 +36,9 @@ def descargar_pdf(url, output_file="temp.pdf"):
         logging.info(f"PDF descargado correctamente: {output_file}")
         return output_file
     else:
-        raise ValueError(f"No se pudo descargar el PDF. Estado: {r.status_code}")
+        raise ValueError(
+            f"No se pudo descargar el PDF. Estado: {r.status_code}")
+
 
 def calcular_precision_aproximada(texto):
     """
@@ -65,11 +50,13 @@ def calcular_precision_aproximada(texto):
     letras_numeros = sum(c.isalnum() for c in t)
     return round(letras_numeros / len(t), 2)
 
+
 def bounding_boxes_a_tabla(img, threshold_vertical=10, threshold_horizontal=60):
     """
     Aplica OCR a la imagen y organiza el resultado en una tabla utilizando bounding boxes.
     """
-    df = pytesseract.image_to_data(img, output_type=Output.DATAFRAME, lang='spa')
+    df = pytesseract.image_to_data(
+        img, output_type=Output.DATAFRAME, lang='spa')
     df = df.dropna(subset=["text"])
     df = df[df.conf != -1].reset_index(drop=True)
     df = df.sort_values(by="top").reset_index(drop=True)
@@ -113,12 +100,14 @@ def bounding_boxes_a_tabla(img, threshold_vertical=10, threshold_horizontal=60):
         ajustada.append(row)
     return tabulate(ajustada, headers=headers, tablefmt="grid")
 
+
 def extraer_tablas_camelot(pdf_path, page_number):
     """
     Extrae tablas de una página del PDF usando Camelot.
     """
     try:
-        tables = camelot.read_pdf(pdf_path, pages=str(page_number), flavor="lattice")
+        tables = camelot.read_pdf(
+            pdf_path, pages=str(page_number), flavor="lattice")
         ascii_tables = []
         for t in tables:
             df = t.df
@@ -128,6 +117,7 @@ def extraer_tablas_camelot(pdf_path, page_number):
     except Exception as e:
         logging.warning(f"[Camelot] Error en la página {page_number}: {e}")
         return []
+
 
 def extraer_tablas_pdfplumber(plumber_page):
     """
@@ -139,6 +129,7 @@ def extraer_tablas_pdfplumber(plumber_page):
         for tbl in tbls:
             ascii_tables.append(tabulate(tbl, tablefmt="grid"))
     return ascii_tables
+
 
 def guardar_tablas_separadas(tablas, carpeta_salida, nombre_pag):
     """
@@ -154,20 +145,23 @@ def guardar_tablas_separadas(tablas, carpeta_salida, nombre_pag):
         json.dump(data_tablas, f, indent=2, ensure_ascii=False)
     return path_tablas
 
+
 def extraer_formularios(doc):
     """
     Extrae campos de formulario (widgets) de cada página del PDF.
     """
     formularios = []
     for i, page in enumerate(doc):
-        if page.widgets:
-            for w in page.widgets:
+        widgets = page.widgets()
+        if widgets:
+            for w in widgets:
                 formularios.append({
-                    "pagina": i+1,
-                    "campo_name": w.field_name,
-                    "campo_value": w.field_value
+                    "pagina": i + 1,
+                    "campo_name": getattr(w, "field_name", ""),
+                    "campo_value": getattr(w, "field_value", "")
                 })
     return formularios
+
 
 def crear_indice_y_indexar(carpeta_indice, texto_global):
     """
@@ -180,6 +174,7 @@ def crear_indice_y_indexar(carpeta_indice, texto_global):
     writer = ix.writer()
     writer.add_document(id="documento_pdf", content=texto_global)
     writer.commit()
+
 
 def buscar_en_indice(carpeta_indice, consulta):
     """
@@ -196,6 +191,8 @@ def buscar_en_indice(carpeta_indice, consulta):
 ######################################
 # PROCESAMIENTO DEL PDF
 ######################################
+
+
 def procesar_pdf(pdf_path, carpeta_salida, idioma="spa"):
     """
     Procesa el PDF extrayendo texto, tablas y formularios, y crea un índice de búsqueda.
@@ -209,6 +206,12 @@ def procesar_pdf(pdf_path, carpeta_salida, idioma="spa"):
     plumber_pdf = pdfplumber.open(pdf_path)
     npages = doc.page_count
     md = doc.metadata or {}
+
+    # Debug
+    print("DEBUG >>> metadata:", md)
+    print("DEBUG >>> type of metadata:", type(md))
+    logging.info(f"DEBUG >>> metadata: {md}")
+    logging.info(f"DEBUG >>> type: {type(md)}")
 
     # Extraer formularios (si existen)
     formularios_detectados = extraer_formularios(doc)
@@ -237,23 +240,24 @@ def procesar_pdf(pdf_path, carpeta_salida, idioma="spa"):
                 if plumber_tables:
                     tablas_pagina.extend(plumber_tables)
         else:
-            images = convert_from_path(pdf_path, first_page=page_num, last_page=page_num)
+            images = convert_from_path(pdf_path)
             if images:
                 contenido = bounding_boxes_a_tabla(images[0])
             ocr_flag = True
             pags_ocr += 1
-
         prec = calcular_precision_aproximada(contenido)
         info_paginas.append({
             "pagina": page_num,
             "texto": contenido,
             "ocr": ocr_flag,
-            "precision_aproximada": prec
+            "precision_aproximada": prec,
+            "tablas": tablas_pagina if tablas_pagina else []
         })
         texto_global_completo.append(contenido)
 
         if tablas_pagina:
-            guardar_tablas_separadas(tablas_pagina, carpeta_salida, str(page_num))
+            guardar_tablas_separadas(
+                tablas_pagina, carpeta_salida, str(page_num))
 
     doc.close()
     plumber_pdf.close()
@@ -279,12 +283,15 @@ def procesar_pdf(pdf_path, carpeta_salida, idioma="spa"):
         "formularios": formularios_detectados
     }
     json_path = os.path.join(carpeta_salida, "resultado.json")
-    with open(json_path, "w", encoding="utf-8") as fj:
-        json.dump(data_final, fj, indent=2, ensure_ascii=False)
-
     texto_path = os.path.join(carpeta_salida, "resultado.txt")
     with open(texto_path, "w", encoding="utf-8") as ft:
-        ft.write("\n\n".join([f"[Página {p['pagina']}]: {p['texto']}" for p in info_paginas]))
+        lineas_txt = []
+        for p in info_paginas:
+            lineas_txt.append(f"[Página {p['pagina']}]\n{p['texto']}")
+            if p.get("tablas"):
+                for idx, tabla in enumerate(p["tablas"], start=1):
+                    lineas_txt.append(f"[Tabla {idx} - Página {p['pagina']}]\n{tabla}")
+        ft.write("\n\n".join(lineas_txt))
 
     # Crear índice de búsqueda
     indice_dir = os.path.join(carpeta_salida, "indice_whoosh")
@@ -294,90 +301,80 @@ def procesar_pdf(pdf_path, carpeta_salida, idioma="spa"):
     logging.info("Proceso de extracción completado.")
     return json_path, texto_path
 
-######################################
-# INTERFAZ CON IPYWIDGETS
-######################################
-import ipywidgets as widgets
-from IPython.display import display, clear_output
-from google.colab import files
 
-lbl_info = widgets.Label(value="Escoge método para tu PDF:")
-lbl_error = widgets.Label(value="", layout=widgets.Layout(width="50%"))
-btn_url = widgets.Button(description="Ingresar URL")
-btn_upload = widgets.Button(description="Subir Archivo")
-btn_procesar = widgets.Button(description="Procesar PDF", disabled=True)
-txt_url = widgets.Text(description="URL PDF:", layout=widgets.Layout(width='50%'))
+def menu():
+    while True:
+        print("\n=== MENÚ PRINCIPAL ===")
+        print("1. Ingresar URL de PDF")
+        print("2. Subir archivo PDF desde el escritorio")
+        print("3. Probar con enlace del MOP")
+        print("4. Terminar proceso")
 
-def show_main_buttons():
-    clear_output()
-    lbl_error.value = ""
-    display(lbl_info, lbl_error)
-    display(btn_url, btn_upload, btn_procesar)
+        opcion = input("Seleccione una opción (1-4): ").strip()
 
-def on_btn_url_click(b):
-    lbl_error.value = ""
-    def on_descargar_click(_):
-        global pdf_local_path
-        if not txt_url.value.strip():
-            lbl_error.value = "Ingresa una URL."
-            return
-        try:
-            pdf_local_path = "temp.pdf"
-            descargar_pdf(txt_url.value.strip(), pdf_local_path)
-            lbl_error.value = "Descargado con éxito."
-            btn_procesar.disabled = False
-        except Exception as e:
-            lbl_error.value = f"Error: {e}"
-    btn_descargar = widgets.Button(description="Descargar PDF")
-    btn_descargar.on_click(on_descargar_click)
-    clear_output()
-    display(widgets.HTML("<h4>Ingresa la URL del PDF</h4>"), txt_url, btn_descargar, lbl_error)
-    display(btn_procesar)
+        if opcion == "1":
+            url = input("Ingrese la URL del PDF: ").strip()
+            if not url:
+                print("No se ingresó una URL válida.")
+                continue
+            try:
+                procesar_desde_url(url)
+            except Exception as e:
+                logging.error(f"Error: {e}")
+            continue
 
-def on_btn_upload_click(b):
-    lbl_error.value = ""
-    file_uploader = widgets.FileUpload(accept=".pdf", multiple=False)
-    def on_upload_change(change):
-        global pdf_local_path
-        up_file = file_uploader.value
-        if up_file:
-            fname = list(up_file.keys())[0]
-            with open(fname, 'wb') as f:
-                f.write(up_file[fname]['content'])
-            pdf_local_path = fname
-            lbl_error.value = f"Archivo '{fname}' subido."
-            btn_procesar.disabled = False
-    file_uploader.observe(on_upload_change, names='value')
-    clear_output()
-    display(widgets.HTML("<h4>Subir PDF local</h4>"), file_uploader, lbl_error)
-    display(btn_procesar)
+        elif opcion == "2":
+            ruta = input("Ingrese la ruta completa del archivo PDF: ").strip()
+            if not os.path.isfile(ruta):
+                print("No se encontró el archivo especificado.")
+                continue
+            try:
+                procesar_desde_archivo(ruta)
+            except Exception as e:
+                logging.error(f"Error: {e}")
+            continue
 
-def on_btn_procesar_click(b):
-    global pdf_local_path
-    if not pdf_local_path or not os.path.exists(pdf_local_path):
-        lbl_error.value = "No hay PDF."
-        return
-    base_name = os.path.splitext(os.path.basename(pdf_local_path))[0]
-    folder_name = base_name[:10]
-    os.makedirs(folder_name, exist_ok=True)
-    
-    json_path, txt_path = procesar_pdf(pdf_local_path, folder_name)
-    original_pdf_path = os.path.join(folder_name, "original.pdf")
-    shutil.copy(pdf_local_path, original_pdf_path)
-    
+        elif opcion == "3":
+            enlace_mop = "https://planeamiento.mop.gob.cl/uploads/sites/12/2025/02/indices_enero_2025-copia.pdf"
+            try:
+                procesar_desde_url(enlace_mop)
+            except Exception as e:
+                logging.error(f"Error: {e}")
+            continue
+
+        elif opcion == "4":
+            print("Proceso finalizado.")
+            break
+
+        else:
+            print("Opción no válida. Intente nuevamente.")
+
+
+def procesar_desde_url(url):
+    pdf_path = "temp.pdf"
+    carpeta_salida = "resultado"
+    os.makedirs(carpeta_salida, exist_ok=True)
+    descargar_pdf(url, pdf_path)
+    generar_resultados(pdf_path, carpeta_salida)
+
+
+def procesar_desde_archivo(path):
+    carpeta_salida = "resultado"
+    os.makedirs(carpeta_salida, exist_ok=True)
+    temp_path = "temp.pdf"
+    shutil.copy(path, temp_path)
+    generar_resultados(temp_path, carpeta_salida)
+
+
+def generar_resultados(pdf_path, carpeta_salida):
+    json_path, txt_path = procesar_pdf(pdf_path, carpeta_salida)
+    pdf_output = os.path.join(carpeta_salida, "original.pdf")
+    shutil.copy(pdf_path, pdf_output)
     import subprocess
-    subprocess.run(["zip","-j","resultado.zip", json_path, txt_path, original_pdf_path], check=True)
-    files.download("resultado.zip")
-    lbl_error.value = "Proceso completado."
-    btn_procesar.disabled = True
-    show_main_buttons()
+    subprocess.run(["zip", "-j", "resultado.zip", json_path, txt_path, pdf_output], check=True)
+    destino = os.path.expanduser("~/Downloads/resultado.zip")
+    shutil.move("resultado.zip", destino)
+    print(f"Proceso completado. ZIP guardado en: {destino}")
 
-btn_url.on_click(on_btn_url_click)
-btn_upload.on_click(on_btn_upload_click)
-btn_procesar.on_click(on_btn_procesar_click)
-
-show_main_buttons()
-
-# (E) Notas de CI/CD
-# Se recomienda agregar un archivo de pruebas unitarias y configurar un workflow (GitHub Actions o similar)
-# para ejecutar los tests automáticamente en cada cambio.
+if __name__ == "__main__":
+    menu()
