@@ -303,6 +303,30 @@ def procesar_pdf(pdf_path, carpeta_salida, idioma="spa"):
 # MENÚ Y EJECUCIÓN
 ######################################
 
+import os
+
+def obtener_ruta_valida():
+    ruta = input("Ingrese la ruta completa del archivo PDF: ").strip()
+
+    # Quitar comillas dobles o simples al inicio y fin de la ruta (si las hubiera)
+    ruta = ruta.strip('\"').strip('\'')
+
+    # Reemplazar barras invertidas usadas para escapar espacios
+    ruta = ruta.replace("\\", "")
+
+    # Expandir caracteres especiales (como ~ para home)
+    ruta = os.path.expanduser(ruta)
+
+    # Normalizar la ruta
+    ruta = os.path.normpath(ruta)
+
+    # Si la ruta existe, devolverla
+    if os.path.exists(ruta):
+        return ruta
+    else:
+        print("No se encontró el archivo especificado.")
+        return None
+
 def menu():
     while True:
         print("\n=== MENÚ PRINCIPAL ===")
@@ -377,4 +401,3 @@ def generar_resultados(pdf_path, carpeta_salida):
 if __name__ == "__main__":
     menu()
 
-    
