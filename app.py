@@ -23,7 +23,6 @@ logging.basicConfig(level=logging.INFO,
 # FUNCIONES AUXILIARES
 ###################################
 
-
 def descargar_pdf(url, output_file="temp.pdf"):
     """
     Descarga un PDF desde una URL y lo guarda en output_file.
@@ -39,7 +38,6 @@ def descargar_pdf(url, output_file="temp.pdf"):
         raise ValueError(
             f"No se pudo descargar el PDF. Estado: {r.status_code}")
 
-
 def calcular_precision_aproximada(texto):
     """
     Calcula la precisión aproximada del OCR en función del porcentaje de caracteres alfanuméricos.
@@ -49,7 +47,6 @@ def calcular_precision_aproximada(texto):
         return 0
     letras_numeros = sum(c.isalnum() for c in t)
     return round(letras_numeros / len(t), 2)
-
 
 def bounding_boxes_a_tabla(img, threshold_vertical=10, threshold_horizontal=60):
     """
@@ -100,7 +97,6 @@ def bounding_boxes_a_tabla(img, threshold_vertical=10, threshold_horizontal=60):
         ajustada.append(row)
     return tabulate(ajustada, headers=headers, tablefmt="grid")
 
-
 def extraer_tablas_camelot(pdf_path, page_number):
     """
     Extrae tablas de una página del PDF usando Camelot.
@@ -118,7 +114,6 @@ def extraer_tablas_camelot(pdf_path, page_number):
         logging.warning(f"[Camelot] Error en la página {page_number}: {e}")
         return []
 
-
 def extraer_tablas_pdfplumber(plumber_page):
     """
     Extrae tablas de una página del PDF usando pdfplumber.
@@ -129,7 +124,6 @@ def extraer_tablas_pdfplumber(plumber_page):
         for tbl in tbls:
             ascii_tables.append(tabulate(tbl, tablefmt="grid"))
     return ascii_tables
-
 
 def guardar_tablas_separadas(tablas, carpeta_salida, nombre_pag):
     """
@@ -144,7 +138,6 @@ def guardar_tablas_separadas(tablas, carpeta_salida, nombre_pag):
     with open(path_tablas, "w", encoding="utf-8") as f:
         json.dump(data_tablas, f, indent=2, ensure_ascii=False)
     return path_tablas
-
 
 def extraer_formularios(doc):
     """
@@ -162,7 +155,6 @@ def extraer_formularios(doc):
                 })
     return formularios
 
-
 def crear_indice_y_indexar(carpeta_indice, texto_global):
     """
     Crea un índice con Whoosh e indexa el contenido global extraído.
@@ -174,7 +166,6 @@ def crear_indice_y_indexar(carpeta_indice, texto_global):
     writer = ix.writer()
     writer.add_document(id="documento_pdf", content=texto_global)
     writer.commit()
-
 
 def buscar_en_indice(carpeta_indice, consulta):
     """
@@ -192,12 +183,16 @@ def buscar_en_indice(carpeta_indice, consulta):
 # PROCESAMIENTO DEL PDF
 ######################################
 
+# Aseguramos las importaciones necesarias para el OCR optimizado
+from pdf2image import convert_from_path
+import pytesseract
+from PIL import Image
+from concurrent.futures import ProcessPoolExecutor
+
+# Configuración personalizada para Tesseract
+CUSTOM_CONFIG = r'--oem 1 --psm 6'
 
 def procesar_pdf(pdf_path, carpeta_salida, idioma="spa"):
-    """
-    Procesa el PDF extrayendo texto, tablas y formularios, y crea un índice de búsqueda.
-    Genera los archivos resultado.json y resultado.txt.
-    """
     if not os.path.exists(pdf_path):
         raise FileNotFoundError(f"No se encontró: {pdf_path}")
     os.makedirs(carpeta_salida, exist_ok=True)
@@ -240,11 +235,15 @@ def procesar_pdf(pdf_path, carpeta_salida, idioma="spa"):
                 if plumber_tables:
                     tablas_pagina.extend(plumber_tables)
         else:
-            images = convert_from_path(pdf_path)
+            # Optimización: extraer solo la imagen de la página actual con dpi reducido
+            images = convert_from_path(pdf_path, first_page=page_num, last_page=page_num, dpi=250)
             if images:
-                contenido = bounding_boxes_a_tabla(images[0])
+                contenido = pytesseract.image_to_string(images[0], config=CUSTOM_CONFIG)
+            else:
+                contenido = ""
             ocr_flag = True
             pags_ocr += 1
+
         prec = calcular_precision_aproximada(contenido)
         info_paginas.append({
             "pagina": page_num,
@@ -256,8 +255,7 @@ def procesar_pdf(pdf_path, carpeta_salida, idioma="spa"):
         texto_global_completo.append(contenido)
 
         if tablas_pagina:
-            guardar_tablas_separadas(
-                tablas_pagina, carpeta_salida, str(page_num))
+            guardar_tablas_separadas(tablas_pagina, carpeta_salida, str(page_num))
 
     doc.close()
     plumber_pdf.close()
@@ -301,6 +299,9 @@ def procesar_pdf(pdf_path, carpeta_salida, idioma="spa"):
     logging.info("Proceso de extracción completado.")
     return json_path, texto_path
 
+######################################
+# MENÚ Y EJECUCIÓN
+######################################
 
 def menu():
     while True:
@@ -349,7 +350,6 @@ def menu():
         else:
             print("Opción no válida. Intente nuevamente.")
 
-
 def procesar_desde_url(url):
     pdf_path = "temp.pdf"
     carpeta_salida = "resultado"
@@ -357,14 +357,12 @@ def procesar_desde_url(url):
     descargar_pdf(url, pdf_path)
     generar_resultados(pdf_path, carpeta_salida)
 
-
 def procesar_desde_archivo(path):
     carpeta_salida = "resultado"
     os.makedirs(carpeta_salida, exist_ok=True)
     temp_path = "temp.pdf"
     shutil.copy(path, temp_path)
     generar_resultados(temp_path, carpeta_salida)
-
 
 def generar_resultados(pdf_path, carpeta_salida):
     json_path, txt_path = procesar_pdf(pdf_path, carpeta_salida)
@@ -378,3 +376,5 @@ def generar_resultados(pdf_path, carpeta_salida):
 
 if __name__ == "__main__":
     menu()
+
+    
