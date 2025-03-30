@@ -1,11 +1,11 @@
 .DS_Store
-venv/
-resultado/
+/venv/
+/resultado/
 temp.pdf
-__pycache__/
+/__pycache__/
 *.pyc
 *.pyo
 *.zip
 .env
-.venv/
-tests/
+/.venv/
+/*.log
