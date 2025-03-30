@@ -23,4 +23,8 @@ fi
 
 # 4. Levantar los servicios con Docker Compose
 echo "Levantando servicios con docker-compose..."
-docker compose up --build
+docker-compose up --build -d  # Levanta los servicios en segundo plano
+
+# 5. Ejecutar la aplicación dentro del contenedor
+echo "Iniciando la aplicación OCR..."
+docker exec -it ocr-project-ocr-1 python /app/app.py

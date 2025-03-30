@@ -1,8 +1,8 @@
-version: "3.9"
 services:
   ocr:
     build: .
     volumes:
       - .:/app
+      - /Users/ro-1/Downloads:/root/Downloads
     stdin_open: true
     tty: true
