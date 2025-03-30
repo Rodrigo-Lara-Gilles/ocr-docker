@@ -335,6 +335,15 @@ def menu():
         print("3. Probar con enlace del MOP")
         print("4. Terminar proceso")
 
+        import sys
+
+        def is_interactive():
+            return sys.stdin.isatty() and sys.stdout.isatty()
+
+        if not is_interactive():
+            print("Entorno no interactivo detectado. Finalizando ejecución.")
+            return
+
         opcion = input("Seleccione una opción (1-4): ").strip()
 
         if opcion == "1":
