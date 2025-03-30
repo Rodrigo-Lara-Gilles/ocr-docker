@@ -414,7 +414,6 @@ def generar_resultados(pdf_path, carpeta_salida):
 
 if not is_interactive():
     print("Entorno no interactivo detectado. Finalizando ejecución.")
-    exit(0)
 
 if __name__ == "__main__":
     menu()
