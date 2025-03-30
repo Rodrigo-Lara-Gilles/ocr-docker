@@ -391,6 +391,14 @@ def procesar_desde_url(url):
     generar_resultados(pdf_path, carpeta_salida)
 
 def procesar_desde_archivo(path):
+    # Convertir la ruta local a la ruta dentro del contenedor
+    if path.startswith("/Users/ro-1"):
+        path = path.replace("/Users/ro-1", "/host")
+
+    if not os.path.isfile(path):
+        print("No se encontró el archivo especificado.")
+        return
+
     carpeta_salida = "resultado"
     os.makedirs(carpeta_salida, exist_ok=True)
     temp_path = "temp.pdf"

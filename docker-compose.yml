@@ -3,6 +3,6 @@ services:
     build: .
     volumes:
       - .:/app
-      - /Users/ro-1/Downloads:/root/Downloads
+      - /Users/ro-1:/host
     stdin_open: true
     tty: true
