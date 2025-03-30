@@ -7,5 +7,4 @@ temp.pdf
 *.pyo
 *.zip
 .env
-/.venv/
 /*.log

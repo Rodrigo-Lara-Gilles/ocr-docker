@@ -403,7 +403,10 @@ def generar_resultados(pdf_path, carpeta_salida):
     shutil.copy(pdf_path, pdf_output)
     import subprocess
     subprocess.run(["zip", "-j", "resultado.zip", json_path, txt_path, pdf_output], check=True)
-    destino = os.path.join(os.getcwd(), "resultado.zip")  # Guardar en el directorio actual
+    
+    # Cambiar la ruta de destino al directorio Downloads
+    destino = os.path.expanduser("~/Downloads/resultado.zip")
+    os.makedirs(os.path.dirname(destino), exist_ok=True)  # Crear la carpeta si no existe
     shutil.move("resultado.zip", destino)
     print(f"Proceso completado. ZIP guardado en: {destino}")
 
