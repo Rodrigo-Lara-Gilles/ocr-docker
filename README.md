@@ -1,76 +1,74 @@
-# Proyecto OCR para Documentos del MOP
-
-Este proyecto implementa un prototipo de OCR que extrae texto de PDFs oficiales combinando  
-la extracción de texto digital y OCR para páginas escaneadas. Además, se extraen tablas, se detectan  
-formularios y se indexa el contenido para búsquedas posteriores.
-
-## Requisitos del sistema
-
-- **Python 3.7+** (se recomienda usar Python 3.12.9 o superior)
-- **Poppler** instalado en el sistema:
-  - **macOS**:
-    ```bash
-    brew install poppler
-    ```
-  - **Ubuntu/Debian**:
-    ```bash
-    sudo apt-get update
-    sudo apt-get install poppler-utils
-    ```
-  - **Windows**:
-    1. Descarga la versión precompilada de [Poppler para Windows](http://blog.alivate.com.au/poppler-windows/).
-    2. Descomprime el contenido en una carpeta (por ejemplo, `C:\poppler\`).
-    3. Agrega la ruta `C:\poppler\bin` a la variable de entorno `PATH`.
-- **Tesseract OCR** instalado en el sistema:
-  - **macOS**:
-    ```bash
-    brew install tesseract
-    ```
-  - **Ubuntu/Debian**:
-    ```bash
-    sudo apt-get update
-    sudo apt-get install tesseract-ocr
-    ```
-  - **Windows**:
-    1. Descarga el instalador de Tesseract desde [la página de Tesseract](https://github.com/UB-Mannheim/tesseract/wiki).
-    2. Instálalo y asegúrate de que la ruta del ejecutable esté en la variable de entorno `PATH`.
-
-## Instalación
-
-1. Clonar el repositorio:
+# OCR Dockerizado para Documentos del MOP
+ 
+Este proyecto implementa un sistema completo de OCR capaz de procesar documentos PDF del Ministerio de Obras Públicas (MOP) de Chile. El sistema puede:
+ 
+- Extraer texto digital y escaneado (OCR)
+- Detectar y extraer tablas usando Camelot y pdfplumber
+- Detectar formularios
+- Indexar el contenido para búsquedas rápidas con Whoosh
+- Empaquetar los resultados en un archivo `.zip`
+ 
+El proyecto ahora está completamente contenido en un **contenedor Docker**. ¡No requiere instalar nada en tu sistema!
+ 
+---
+ 
+## 🚀 Requisitos
+ 
+- [Docker](https://docs.docker.com/get-docker/) instalado (puede usarse con Colima si estás en Mac)
+ 
+---
+ 
+## 🐳 Ejecutar en Docker
+ 
+1. Cloná el repositorio:
+ 
    ```bash
-   git clone https://github.com/Rodrigo-Lara-Gilles/ocr-project.git
-   cd ocr-project
+   git clone https://github.com/Rodrigo-Lara-Gilles/ocr-docker.git
+   cd ocr-docker
    ```
-2. Crea y activa un entorno virtual:
+ 
+2. Construí la imagen:
+ 
+   ```bash
+   docker build -t ocr-app .
    ```
-   python3 -m venv venv
-   source venv/bin/activate
+ 
+3. Ejecutá la app interactiva:
+ 
+   ```bash
+   docker run --rm -it -v "$(pwd)":/app ocr-app
    ```
-3. Instala las dependencias:
-   ```
-   python3 -m pip install -r requirements.txt
-   ```
-
-## Uso
-
-- Para procesar un PDF local:
-  ```
-  python app.py --pdf ruta_al_pdf.pdf --output salida
-  ```
-- Para procesar un PDF desde una URL:
-  ```
-  python app.py --url https://ejemplo.com/archivo.pdf --output salida
-  ```
-
-## Pruebas
-
-Ejecuta las pruebas unitarias con:
+ 
+Esto iniciará el menú interactivo que te permite procesar un PDF desde URL o archivo local.
+ 
+---
+ 
+## 📂 Estructura de salida
+ 
+- `resultado/`: Carpeta con los resultados procesados
+- `resultado.zip`: Archivo comprimido con el `.pdf`, `.json`, `.txt` y el índice Whoosh
+ 
+---
+ 
+## 🧪 Pruebas
+ 
+Este proyecto incluye pruebas automatizadas con `pytest`.
+ 
+Ejecutalas con:
+ 
+```bash
+pytest
 ```
-pytest tests/
-```
-
-## CI/CD
-
-Este proyecto incluye un workflow para GitHub Actions en `.github/workflows/ci.yml` que ejecuta
-las pruebas en cada push o pull request.
+ 
+---
+ 
+## 📦 CI/CD
+ 
+El flujo de trabajo de GitHub Actions (`.github/workflows/ci.yaml`) incluye:
+ 
+- Instalación de dependencias
+- Ejecución de pruebas
+- Validación del build Docker
+- Test de ejecución del contenedor
+ 
+---

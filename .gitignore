@@ -2,3 +2,10 @@
 venv/
 resultado/
 temp.pdf
+__pycache__/
+*.pyc
+*.pyo
+*.zip
+.env
+.venv/
+tests/

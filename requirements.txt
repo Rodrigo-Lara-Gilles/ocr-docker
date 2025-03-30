@@ -12,5 +12,3 @@ requests
 tabulate
 whoosh
 pytest
-
-#python3 -m pip install -r requirements.txt

@@ -23,6 +23,12 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -r requirements.txt
+      
+      - name: Docker build test
+        run: docker build -t ocr-app .
+      
+      - name: Test Docker container runs
+        run: docker run --rm ocr-app python app.py --version
 
       - name: Run tests
         run: pytest
