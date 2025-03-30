@@ -13,7 +13,12 @@ from tabulate import tabulate
 import shutil
 from whoosh import index
 from whoosh.fields import Schema, TEXT, ID
+# from pathlib import Path
 from pathlib import Path
+
+def is_interactive():
+    import sys
+    return sys.stdin.isatty() and sys.stdout.isatty()
 
 # Configuración de logging para registrar eventos y errores
 logging.basicConfig(level=logging.INFO,
@@ -33,10 +38,10 @@ def descargar_pdf(url, output_file="temp.pdf"):
         with open(output_file, "wb") as f:
             f.write(r.content)
         logging.info(f"PDF descargado correctamente: {output_file}")
+        print(f"DEBUG: Archivo descargado en {output_file}")
         return output_file
     else:
-        raise ValueError(
-            f"No se pudo descargar el PDF. Estado: {r.status_code}")
+        raise ValueError(f"No se pudo descargar el PDF. Estado: {r.status_code}")
 
 def calcular_precision_aproximada(texto):
     """
@@ -184,9 +189,6 @@ def buscar_en_indice(carpeta_indice, consulta):
 ######################################
 
 # Aseguramos las importaciones necesarias para el OCR optimizado
-from pdf2image import convert_from_path
-import pytesseract
-from PIL import Image
 from concurrent.futures import ProcessPoolExecutor
 
 # Configuración personalizada para Tesseract
@@ -303,24 +305,17 @@ def procesar_pdf(pdf_path, carpeta_salida, idioma="spa"):
 # MENÚ Y EJECUCIÓN
 ######################################
 
-import os
+import subprocess
 
 def obtener_ruta_valida():
+    """
+    Solicita al usuario una ruta válida para un archivo PDF.
+    """
     ruta = input("Ingrese la ruta completa del archivo PDF: ").strip()
-
-    # Quitar comillas dobles o simples al inicio y fin de la ruta (si las hubiera)
     ruta = ruta.strip('\"').strip('\'')
-
-    # Reemplazar barras invertidas usadas para escapar espacios
     ruta = ruta.replace("\\", "")
-
-    # Expandir caracteres especiales (como ~ para home)
     ruta = os.path.expanduser(ruta)
-
-    # Normalizar la ruta
     ruta = os.path.normpath(ruta)
-
-    # Si la ruta existe, devolverla
     if os.path.exists(ruta):
         return ruta
     else:
@@ -334,15 +329,6 @@ def menu():
         print("2. Subir archivo PDF desde el escritorio")
         print("3. Probar con enlace del MOP")
         print("4. Terminar proceso")
-
-        import sys
-
-        def is_interactive():
-            return sys.stdin.isatty() and sys.stdout.isatty()
-
-        if not is_interactive():
-            print("Entorno no interactivo detectado. Finalizando ejecución.")
-            return
 
         opcion = input("Seleccione una opción (1-4): ").strip()
 
@@ -358,9 +344,8 @@ def menu():
             continue
 
         elif opcion == "2":
-            ruta = input("Ingrese la ruta completa del archivo PDF: ").strip()
-            if not os.path.isfile(ruta):
-                print("No se encontró el archivo especificado.")
+            ruta = obtener_ruta_valida()
+            if not ruta:
                 continue
             try:
                 procesar_desde_archivo(ruta)
@@ -391,9 +376,15 @@ def procesar_desde_url(url):
     generar_resultados(pdf_path, carpeta_salida)
 
 def procesar_desde_archivo(path):
-    # Convertir la ruta local a la ruta dentro del contenedor
+    """
+    Procesa un archivo PDF desde una ruta proporcionada por el usuario.
+    """
+    print(f"DEBUG: Ruta ingresada: {path}")
+
+    # Convertir la ruta local de la máquina anfitriona a la ruta dentro del contenedor
     if path.startswith("/Users/ro-1"):
         path = path.replace("/Users/ro-1", "/host")
+    print(f"DEBUG: Ruta convertida: {path}")
 
     if not os.path.isfile(path):
         print("No se encontró el archivo especificado.")
@@ -406,6 +397,9 @@ def procesar_desde_archivo(path):
     generar_resultados(temp_path, carpeta_salida)
 
 def generar_resultados(pdf_path, carpeta_salida):
+    """
+    Genera los resultados del procesamiento del PDF y los guarda en un archivo ZIP.
+    """
     json_path, txt_path = procesar_pdf(pdf_path, carpeta_salida)
     pdf_output = os.path.join(carpeta_salida, "original.pdf")
     shutil.copy(pdf_path, pdf_output)
@@ -414,9 +408,13 @@ def generar_resultados(pdf_path, carpeta_salida):
     
     # Cambiar la ruta de destino al directorio Downloads
     destino = os.path.expanduser("~/Downloads/resultado.zip")
-    os.makedirs(os.path.dirname(destino), exist_ok=True)  # Crear la carpeta si no existe
+    os.makedirs(os.path.dirname(destino), exist_ok=True)
     shutil.move("resultado.zip", destino)
     print(f"Proceso completado. ZIP guardado en: {destino}")
+
+if not is_interactive():
+    print("Entorno no interactivo detectado. Finalizando ejecución.")
+    exit(0)
 
 if __name__ == "__main__":
     menu()
