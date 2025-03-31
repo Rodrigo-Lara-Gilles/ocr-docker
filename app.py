@@ -13,12 +13,7 @@ from tabulate import tabulate
 import shutil
 from whoosh import index
 from whoosh.fields import Schema, TEXT, ID
-# from pathlib import Path
 from pathlib import Path
-
-def is_interactive():
-    import sys
-    return sys.stdin.isatty() and sys.stdout.isatty()
 
 # Configuración de logging para registrar eventos y errores
 logging.basicConfig(level=logging.INFO,
@@ -189,6 +184,9 @@ def buscar_en_indice(carpeta_indice, consulta):
 ######################################
 
 # Aseguramos las importaciones necesarias para el OCR optimizado
+from pdf2image import convert_from_path
+import pytesseract
+from PIL import Image
 from concurrent.futures import ProcessPoolExecutor
 
 # Configuración personalizada para Tesseract
@@ -309,18 +307,31 @@ import subprocess
 
 def obtener_ruta_valida():
     """
-    Solicita al usuario una ruta válida para un archivo PDF.
+    Permite al usuario seleccionar un archivo PDF desde /host/Desktop.
     """
-    ruta = input("Ingrese la ruta completa del archivo PDF: ").strip()
-    ruta = ruta.strip('\"').strip('\'')
-    ruta = ruta.replace("\\", "")
-    ruta = os.path.expanduser(ruta)
-    ruta = os.path.normpath(ruta)
-    if os.path.exists(ruta):
-        return ruta
-    else:
-        print("No se encontró el archivo especificado.")
+    desktop_dir = "/host/Desktop"
+    if not os.path.exists(desktop_dir):
+        print("No se encontró el directorio del escritorio montado.")
         return None
+
+    archivos_pdf = [f for f in os.listdir(desktop_dir) if f.lower().endswith(".pdf")]
+    if not archivos_pdf:
+        print("No se encontraron archivos PDF en el escritorio.")
+        return None
+
+    print("\nArchivos PDF encontrados en el escritorio:")
+    for idx, archivo in enumerate(archivos_pdf, start=1):
+        print(f"{idx}. {archivo}")
+
+    seleccion = input("Seleccione un archivo (1-{}): ".format(len(archivos_pdf))).strip()
+    if not seleccion.isdigit() or not (1 <= int(seleccion) <= len(archivos_pdf)):
+        print("Selección no válida.")
+        return None
+
+    archivo_elegido = archivos_pdf[int(seleccion) - 1]
+    ruta_completa = os.path.join(desktop_dir, archivo_elegido)
+    print(f"Archivo seleccionado: {ruta_completa}")
+    return ruta_completa
 
 def menu():
     while True:
@@ -341,7 +352,6 @@ def menu():
                 procesar_desde_url(url)
             except Exception as e:
                 logging.error(f"Error: {e}")
-            continue
 
         elif opcion == "2":
             ruta = obtener_ruta_valida()
@@ -351,7 +361,6 @@ def menu():
                 procesar_desde_archivo(ruta)
             except Exception as e:
                 logging.error(f"Error: {e}")
-            continue
 
         elif opcion == "3":
             enlace_mop = "https://planeamiento.mop.gob.cl/uploads/sites/12/2025/02/indices_enero_2025-copia.pdf"
@@ -359,11 +368,10 @@ def menu():
                 procesar_desde_url(enlace_mop)
             except Exception as e:
                 logging.error(f"Error: {e}")
-            continue
 
         elif opcion == "4":
             print("Proceso finalizado.")
-            break
+            break 
 
         else:
             print("Opción no válida. Intente nuevamente.")
@@ -386,6 +394,7 @@ def procesar_desde_archivo(path):
         path = path.replace("/Users/ro-1", "/host")
     print(f"DEBUG: Ruta convertida: {path}")
 
+    # Verificar si el archivo existe en la ruta convertida
     if not os.path.isfile(path):
         print("No se encontró el archivo especificado.")
         return
@@ -408,13 +417,9 @@ def generar_resultados(pdf_path, carpeta_salida):
     
     # Cambiar la ruta de destino al directorio Downloads
     destino = os.path.expanduser("~/Downloads/resultado.zip")
-    os.makedirs(os.path.dirname(destino), exist_ok=True)
+    os.makedirs(os.path.dirname(destino), exist_ok=True)  # Crear la carpeta si no existe
     shutil.move("resultado.zip", destino)
     print(f"Proceso completado. ZIP guardado en: {destino}")
 
-if not is_interactive():
-    print("Entorno no interactivo detectado. Finalizando ejecución.")
-
 if __name__ == "__main__":
     menu()
-
